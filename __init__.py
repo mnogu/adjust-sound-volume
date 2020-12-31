@@ -45,17 +45,10 @@ def save_volume(volume: int) -> None:
     gui_hooks.av_player_did_begin_playing.append(did_begin_playing)
 
 
-def set_volume(player: SimpleMplayerSlaveModePlayer, volume: int) -> None:
-    player.command('volume', volume)
-
-
 def did_begin_playing(player: Any, _: AVTag) -> None:
     volume = load_volume()
-    # mplayer seems to lose commands sent to it immediately after startup,
-    # so we add a delay for it - an alternate approach would be to adjust
-    # the command line arguments passed to it
     if isinstance(player, SimpleMplayerSlaveModePlayer):
-        mw.progress.timer(500, lambda: set_volume(player, volume), False)
+        player.command('volume', volume, '1')
     elif isinstance(player, MpvManager):
         player.set_property("volume", volume)
 
