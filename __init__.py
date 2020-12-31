@@ -50,7 +50,7 @@ def did_begin_playing(player: Any, _: AVTag) -> None:
     if isinstance(player, SimpleMplayerSlaveModePlayer):
         player.command('volume', volume, '1')
     elif isinstance(player, MpvManager):
-        player.set_property("volume", volume)
+        player.set_property('volume', volume)
 
 
 gui_hooks.av_player_did_begin_playing.append(did_begin_playing)
@@ -85,7 +85,7 @@ class VolumeDialog(QDialog):
         v_box_layout.addWidget(button_box)
 
         self.setModal(True)
-        self.setWindowTitle("Adjust the Volume")
+        self.setWindowTitle('Adjust the Volume')
         self.setLayout(v_box_layout)
 
     def show(self):
