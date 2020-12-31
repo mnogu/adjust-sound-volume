@@ -3,7 +3,7 @@
 # License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 
 """
-Adjust the sound volume in 2.1.20.
+Adjust the sound volume in 2.1.x.
 """
 
 from typing import Any
