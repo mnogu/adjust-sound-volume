@@ -15,10 +15,12 @@ from aqt.sound import MpvManager
 from aqt.sound import SimpleMplayerSlaveModePlayer
 from aqt.qt import QAction
 from aqt.qt import QDialog
+from aqt.qt import QDialogButtonBox
 from aqt.qt import QHBoxLayout
 from aqt.qt import QSlider
 from aqt.qt import QSpinBox
 from aqt.qt import Qt
+from aqt.qt import QVBoxLayout
 
 # Adjust the sound volume
 ######################################
@@ -65,34 +67,44 @@ class VolumeDialog(QDialog):
     def __init__(self, parent):
         super().__init__(parent)
 
-        volume = load_volume()
+        self.slider = QSlider()
+        self.slider.setOrientation(Qt.Horizontal)
+        self.slider.setMinimum(0)
+        self.slider.setMaximum(100)
 
-        slider = QSlider()
-        slider.setOrientation(Qt.Horizontal)
-        slider.setMinimum(0)
-        slider.setMaximum(100)
-        slider.setValue(volume)
+        self.spin_box = QSpinBox()
+        self.spin_box.setMinimum(0)
+        self.spin_box.setMaximum(100)
 
-        spin_box = QSpinBox()
-        spin_box.setMinimum(0)
-        spin_box.setMaximum(100)
-        spin_box.setValue(volume)
+        self.slider.valueChanged.connect(self.spin_box.setValue)
+        self.spin_box.valueChanged.connect(self.slider.setValue)
 
-        slider.valueChanged.connect(spin_box.setValue)
-        slider.valueChanged.connect(save_volume)
+        h_box_layout = QHBoxLayout()
+        h_box_layout.addWidget(self.slider)
+        h_box_layout.addWidget(self.spin_box)
 
-        spin_box.valueChanged.connect(slider.setValue)
-        spin_box.valueChanged.connect(save_volume)
+        button_box = QDialogButtonBox(QDialogButtonBox.Ok|QDialogButtonBox.Cancel)
+        button_box.accepted.connect(self.accept)
+        button_box.rejected.connect(self.reject)
 
-        layout = QHBoxLayout()
-        layout.addWidget(slider)
-        layout.addWidget(spin_box)
+        v_box_layout = QVBoxLayout()
+        v_box_layout.addLayout(h_box_layout)
+        v_box_layout.addWidget(button_box)
 
+        self.setModal(True)
         self.setWindowTitle("Adjust the Volume")
-        self.setLayout(layout)
+        self.setLayout(v_box_layout)
 
-volume_dialog = VolumeDialog(mw)
+    def show(self):
+        volume = load_volume()
+        self.slider.setValue(volume)
+        self.spin_box.setValue(volume)
+        super().show()
+
+    def accept(self):
+        save_volume(self.slider.value())
+        super().accept()
 
 action = QAction('Adjust Sound Volume...')
-action.triggered.connect(volume_dialog.show)
+action.triggered.connect(VolumeDialog(mw).show)
 mw.form.menuTools.addAction(action)
