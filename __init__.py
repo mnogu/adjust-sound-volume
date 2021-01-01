@@ -8,20 +8,20 @@ Adjust the sound volume in 2.1.x.
 
 from typing import Any
 
-from anki.sound import AVTag
-from aqt import gui_hooks
-from aqt import mw
-from aqt.sound import MpvManager
-from aqt.sound import SimpleMplayerSlaveModePlayer
 from aqt.qt import QAction
 from aqt.qt import QDialog
 from aqt.qt import QDialogButtonBox
 from aqt.qt import QHBoxLayout
 from aqt.qt import QSlider
 from aqt.qt import QSpinBox
-from aqt.qt import Qt
 from aqt.qt import QVBoxLayout
 from aqt.qt import QWidget
+from aqt.qt import Qt
+from aqt.sound import MpvManager
+from aqt.sound import SimpleMplayerSlaveModePlayer
+from aqt import gui_hooks
+from aqt import mw
+from anki.sound import AVTag
 
 # Adjust the sound volume
 ######################################
