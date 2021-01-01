@@ -23,9 +23,6 @@ from aqt import gui_hooks
 from aqt import mw
 from anki.sound import AVTag
 
-# Adjust the sound volume
-######################################
-
 
 def load_volume() -> int:
     """Load the sound volume configuration."""
