@@ -40,6 +40,7 @@ def load_volume() -> int:
 
     return default_volume
 
+
 def save_volume(volume: int) -> None:
     """Save the sound volume configuration."""
     mw.addonManager.writeConfig(__name__, {'volume': volume})
@@ -81,7 +82,7 @@ class VolumeDialog(QDialog):
         h_box_layout.addWidget(self.slider)
         h_box_layout.addWidget(self.spin_box)
 
-        button_box = QDialogButtonBox(QDialogButtonBox.Ok|QDialogButtonBox.Cancel)
+        button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         button_box.accepted.connect(self.accept)
         button_box.rejected.connect(self.reject)
 
@@ -104,6 +105,7 @@ class VolumeDialog(QDialog):
         """Save the sound volume and hide the dialog window."""
         save_volume(self.slider.value())
         super().accept()
+
 
 action = QAction('Adjust Sound Volume...')
 action.triggered.connect(VolumeDialog(mw).show)
