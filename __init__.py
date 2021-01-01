@@ -21,6 +21,7 @@ from aqt.qt import QSlider
 from aqt.qt import QSpinBox
 from aqt.qt import Qt
 from aqt.qt import QVBoxLayout
+from aqt.qt import QWidget
 
 # Adjust the sound volume
 ######################################
@@ -57,7 +58,7 @@ gui_hooks.av_player_did_begin_playing.append(did_begin_playing)
 
 
 class VolumeDialog(QDialog):
-    def __init__(self, parent):
+    def __init__(self, parent: QWidget) -> None:
         super().__init__(parent)
 
         self.slider = QSlider()
@@ -88,13 +89,13 @@ class VolumeDialog(QDialog):
         self.setWindowTitle('Adjust the Volume')
         self.setLayout(v_box_layout)
 
-    def show(self):
+    def show(self) -> None:
         volume = load_volume()
         self.slider.setValue(volume)
         self.spin_box.setValue(volume)
         super().show()
 
-    def accept(self):
+    def accept(self) -> None:
         save_volume(self.slider.value())
         super().accept()
 
