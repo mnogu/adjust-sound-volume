@@ -28,6 +28,7 @@ from anki.sound import AVTag
 
 
 def load_volume() -> int:
+    """Load the sound volume configuration."""
     config = mw.addonManager.getConfig(__name__)
     default_volume = 100
     if config is None:
@@ -40,6 +41,7 @@ def load_volume() -> int:
     return default_volume
 
 def save_volume(volume: int) -> None:
+    """Save the sound volume configuration."""
     mw.addonManager.writeConfig(__name__, {'volume': volume})
 
     gui_hooks.av_player_did_begin_playing.remove(did_begin_playing)
@@ -47,6 +49,7 @@ def save_volume(volume: int) -> None:
 
 
 def did_begin_playing(player: Any, _: AVTag) -> None:
+    """Set the sound volume."""
     volume = load_volume()
     if isinstance(player, SimpleMplayerSlaveModePlayer):
         player.command('volume', volume, '1')
@@ -58,6 +61,7 @@ gui_hooks.av_player_did_begin_playing.append(did_begin_playing)
 
 
 class VolumeDialog(QDialog):
+    """A dialog window to set the sound volume"""
     def __init__(self, parent: QWidget) -> None:
         super().__init__(parent)
 
@@ -90,12 +94,14 @@ class VolumeDialog(QDialog):
         self.setLayout(v_box_layout)
 
     def show(self) -> None:
+        """Show the dialog window and its widgets."""
         volume = load_volume()
         self.slider.setValue(volume)
         self.spin_box.setValue(volume)
         super().show()
 
     def accept(self) -> None:
+        """Save the sound volume and hide the dialog window."""
         save_volume(self.slider.value())
         super().accept()
 
