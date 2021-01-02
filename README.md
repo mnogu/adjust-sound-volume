@@ -1,6 +1,6 @@
 # adjust-sound-volume
 
-This Anki 2.1.x add-on adds a new menu item to adjust the sound volume.
+This Anki 2.1.20+ add-on adds a new menu item to adjust the sound volume.
 
 ## How to Install
 
