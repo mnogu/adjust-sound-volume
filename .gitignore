@@ -130,3 +130,4 @@ dmypy.json
 
 # Anki
 /meta.json
+/*.ankiaddon
