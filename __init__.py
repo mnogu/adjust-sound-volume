@@ -66,6 +66,9 @@ def load_config() -> VolumeConfig:
         volume_config.volume = config['volume']
 
     if 'loudnorm' in config:
+        if 'enabled' in config['loudnorm'] and isinstance(config['loudnorm']['enabled'], bool):
+            volume_config.loudnorm.enabled = config['loudnorm']['enabled']
+
         if 'i' in config['loudnorm'] and isinstance(config['loudnorm']['i'], int):
             volume_config.loudnorm.i = config['loudnorm']['i']
 
