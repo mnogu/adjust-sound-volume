@@ -17,12 +17,17 @@
 Adjust the sound volume in 2.1.x.
 """
 
+from dataclasses import asdict
+from dataclasses import dataclass
 from typing import Any
+from typing import Tuple
 
 from aqt.qt import QAction
+from aqt.qt import QCheckBox
 from aqt.qt import QDialog
 from aqt.qt import QDialogButtonBox
-from aqt.qt import QHBoxLayout
+from aqt.qt import QGridLayout
+from aqt.qt import QLabel
 from aqt.qt import QSlider
 from aqt.qt import QSpinBox
 from aqt.qt import QVBoxLayout
@@ -35,23 +40,41 @@ from aqt import mw
 from anki.sound import AVTag
 
 
-def load_volume() -> int:
+@dataclass
+class LoudnormConfig:
+    """The loudnorm filter configuration"""
+    enabled: bool = False
+    i: int = -24
+
+
+@dataclass
+class VolumeConfig:
+    """The volume configuration"""
+    volume: int = 100
+    loudnorm: LoudnormConfig = LoudnormConfig()
+
+
+def load_config() -> VolumeConfig:
     """Load the sound volume configuration."""
+    volume_config = VolumeConfig()
+
     config = mw.addonManager.getConfig(__name__)
-    default_volume = 100
     if config is None:
-        return default_volume
+        return volume_config
 
-    volume = config['volume']
-    if isinstance(volume, int):
-        return volume
+    if 'volume' in config and isinstance(config['volume'], int):
+        volume_config.volume = config['volume']
 
-    return default_volume
+    if 'loudnorm' in config:
+        if 'i' in config['loudnorm'] and isinstance(config['loudnorm']['i'], int):
+            volume_config.loudnorm.i = config['loudnorm']['i']
+
+    return volume_config
 
 
-def save_volume(volume: int) -> None:
+def save_config(config: VolumeConfig) -> None:
     """Save the sound volume configuration."""
-    mw.addonManager.writeConfig(__name__, {'volume': volume})
+    mw.addonManager.writeConfig(__name__, asdict(config))
 
     gui_hooks.av_player_did_begin_playing.remove(did_begin_playing)
     gui_hooks.av_player_did_begin_playing.append(did_begin_playing)
@@ -59,61 +82,114 @@ def save_volume(volume: int) -> None:
 
 def did_begin_playing(player: Any, _: AVTag) -> None:
     """Set the sound volume."""
-    volume = load_volume()
+    config = load_config()
     if isinstance(player, SimpleMplayerSlaveModePlayer):
-        player.command('volume', volume, '1')
+        player.command('volume', config.volume, '1')
     elif isinstance(player, MpvManager):
-        player.set_property('volume', volume)
+        player.set_property('volume', config.volume)
+
+        if config.loudnorm.enabled:
+            loudnorm_value = 'loudnorm=I=' + str(config.loudnorm.i)
+        else:
+            loudnorm_value = ''
+        player.set_property('af', loudnorm_value)
 
 
-gui_hooks.av_player_did_begin_playing.append(did_begin_playing)
+def _create_config_widgets(text: str, min_max: Tuple[int, int]) \
+        -> Tuple[QLabel, QSlider, QSpinBox]:
+    label = QLabel()
+    label.setText(text)
+
+    slider = QSlider()
+    slider.setOrientation(Qt.Horizontal)
+    slider.setMinimum(min_max[0])
+    slider.setMaximum(min_max[1])
+
+    spin_box = QSpinBox()
+    spin_box.setMinimum(min_max[0])
+    spin_box.setMaximum(min_max[1])
+
+    slider.valueChanged.connect(spin_box.setValue)
+    spin_box.valueChanged.connect(slider.setValue)
+
+    return label, slider, spin_box
+
+
+def _set_value(value: int, slider: QSlider, spin_box: QSpinBox) -> None:
+    for widget in [slider, spin_box]:
+        widget.setValue(value)
 
 
 class VolumeDialog(QDialog):
     """A dialog window to set the sound volume"""
+
     def __init__(self, parent: QWidget) -> None:
         super().__init__(parent)
 
-        self.slider = QSlider()
-        self.slider.setOrientation(Qt.Horizontal)
-        self.slider.setMinimum(0)
-        self.slider.setMaximum(100)
+        volume_label, self.volume_slider, self.volume_spin_box = _create_config_widgets(
+            "Volume", (0, 100))
 
-        self.spin_box = QSpinBox()
-        self.spin_box.setMinimum(0)
-        self.spin_box.setMaximum(100)
+        self.loudnorm_check_box = QCheckBox(
+            'Enable loudness normalization (mpv only)')
 
-        self.slider.valueChanged.connect(self.spin_box.setValue)
-        self.spin_box.valueChanged.connect(self.slider.setValue)
+        i_label, self.i_slider, self.i_spin_box = _create_config_widgets(
+            'Integrated loudness', (-70, -5))
+        for widget in [self.i_slider, self.i_spin_box]:
+            self.loudnorm_check_box.toggled.connect(widget.setEnabled)
 
-        h_box_layout = QHBoxLayout()
-        h_box_layout.addWidget(self.slider)
-        h_box_layout.addWidget(self.spin_box)
+        grid_layout = QGridLayout()
+        grid_layout.addWidget(volume_label, 0, 0)
+        grid_layout.addWidget(self.volume_slider, 0, 1)
+        grid_layout.addWidget(self.volume_spin_box, 0, 2)
+        grid_layout.addWidget(self.loudnorm_check_box, 1, 0, 1, 3)
+        grid_layout.addWidget(i_label, 2, 0)
+        grid_layout.addWidget(self.i_slider, 2, 1)
+        grid_layout.addWidget(self.i_spin_box, 2, 2)
 
-        button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        button_box = QDialogButtonBox(
+            QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         button_box.accepted.connect(self.accept)
         button_box.rejected.connect(self.reject)
 
-        v_box_layout = QVBoxLayout()
-        v_box_layout.addLayout(h_box_layout)
-        v_box_layout.addWidget(button_box)
+        layout = QVBoxLayout()
+        layout.addLayout(grid_layout)
+        layout.addStretch()
+        layout.addWidget(button_box)
 
         self.setModal(True)
         self.setWindowTitle('Adjust the Volume')
-        self.setLayout(v_box_layout)
+        self.setLayout(layout)
 
     def show(self) -> None:
         """Show the dialog window and its widgets."""
-        volume = load_volume()
-        self.slider.setValue(volume)
-        self.spin_box.setValue(volume)
+        volume_config = load_config()
+
+        _set_value(volume_config.volume,
+                   self.volume_slider, self.volume_spin_box)
+
+        loudnorm = volume_config.loudnorm
+
+        enabled = loudnorm.enabled
+        self.loudnorm_check_box.setChecked(enabled)
+        for widget in [self.i_slider, self.i_spin_box]:
+            widget.setEnabled(enabled)
+
+        _set_value(loudnorm.i, self.i_slider, self.i_spin_box)
+
         super().show()
 
     def accept(self) -> None:
         """Save the sound volume and hide the dialog window."""
-        save_volume(self.slider.value())
+        volume_config = VolumeConfig()
+        volume_config.volume = self.volume_slider.value()
+        volume_config.loudnorm.enabled = self.loudnorm_check_box.isChecked()
+        volume_config.loudnorm.i = self.i_slider.value()
+
+        save_config(volume_config)
         super().accept()
 
+
+gui_hooks.av_player_did_begin_playing.append(did_begin_playing)
 
 action = QAction('Adjust Sound Volume...')
 action.triggered.connect(VolumeDialog(mw).show)
