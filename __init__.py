@@ -132,7 +132,7 @@ class VolumeDialog(QDialog):
         super().__init__(parent)
 
         volume_label, self.volume_slider, self.volume_spin_box = _create_config_widgets(
-            "Volume", (0, 100))
+            'Volume', (0, 100))
 
         self.loudnorm_check_box = QCheckBox(
             'Enable loudness normalization (mpv only)')
