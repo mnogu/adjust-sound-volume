@@ -141,7 +141,7 @@ class VolumeDialog(QDialog):
 
         i_label, self.i_slider, self.i_spin_box = _create_config_widgets(
             'Integrated loudness', (-70, -5))
-        for widget in [self.i_slider, self.i_spin_box]:
+        for widget in [i_label, self.i_slider, self.i_spin_box]:
             self.loudnorm_check_box.toggled.connect(widget.setEnabled)
         self.loudnorm_check_box.toggled.connect(self._show_warning_on_non_mpv)
 
