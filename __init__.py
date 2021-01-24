@@ -93,6 +93,8 @@ def did_begin_playing(player: Any, _: AVTag) -> None:
     elif isinstance(player, MpvManager):
         player.set_property('volume', config.volume)
 
+        # How can we retrieve the current value of the af property?
+        # "player.get_property('af')" always returns "[]"
         if config.loudnorm.enabled:
             loudnorm_value = 'loudnorm=I=' + str(config.loudnorm.i)
         else:
