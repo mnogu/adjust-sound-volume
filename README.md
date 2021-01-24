@@ -13,6 +13,8 @@ You can install this add-on through [AnkiWeb](https://ankiweb.net/shared/info/21
 
 ![screenshot](https://raw.githubusercontent.com/mnogu/adjust-sound-volume/main/screenshot.png)
 
+You can enable loudness normalization if Anki uses mpv.
+
 ## How to Create
 
 1. Install `make` and `zip`
