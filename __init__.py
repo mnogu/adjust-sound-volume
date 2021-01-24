@@ -28,11 +28,13 @@ from aqt.qt import QDialog
 from aqt.qt import QDialogButtonBox
 from aqt.qt import QGridLayout
 from aqt.qt import QLabel
+from aqt.qt import QMessageBox
 from aqt.qt import QSlider
 from aqt.qt import QSpinBox
 from aqt.qt import QVBoxLayout
 from aqt.qt import QWidget
 from aqt.qt import Qt
+from aqt.sound import av_player
 from aqt.sound import MpvManager
 from aqt.sound import SimpleMplayerSlaveModePlayer
 from aqt import gui_hooks
@@ -139,6 +141,7 @@ class VolumeDialog(QDialog):
             'Integrated loudness', (-70, -5))
         for widget in [self.i_slider, self.i_spin_box]:
             self.loudnorm_check_box.toggled.connect(widget.setEnabled)
+        self.loudnorm_check_box.toggled.connect(self._show_warning_on_non_mpv)
 
         grid_layout = QGridLayout()
         grid_layout.addWidget(volume_label, 0, 0)
@@ -162,6 +165,17 @@ class VolumeDialog(QDialog):
         self.setModal(True)
         self.setWindowTitle('Adjust the Volume')
         self.setLayout(layout)
+
+    def _show_warning_on_non_mpv(self, checked: bool) -> None:
+        if not checked:
+            return
+
+        if any([isinstance(player, MpvManager) for player in av_player.players]):
+            return
+
+        QMessageBox.warning(self, 'mpv not found or too old',
+                            'You need to install or update mpv and restart Anki '
+                            'to use the loudness normalization feature.')
 
     def show(self) -> None:
         """Show the dialog window and its widgets."""
