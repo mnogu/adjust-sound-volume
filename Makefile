@@ -3,3 +3,7 @@ output := adjust-sound-volume.ankiaddon
 
 $(output): $(inputs)
 	zip -FS $(output) $(inputs)
+
+.PHONY: clean
+clean: $(output)
+	rm $(output)
