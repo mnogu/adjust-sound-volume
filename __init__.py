@@ -172,7 +172,7 @@ class VolumeDialog(QDialog):
         if not checked:
             return
 
-        if any([isinstance(player, MpvManager) for player in av_player.players]):
+        if any(isinstance(player, MpvManager) for player in av_player.players):
             return
 
         QMessageBox.warning(self, 'mpv not found or too old',
