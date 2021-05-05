@@ -50,6 +50,9 @@ def load_config() -> VolumeConfig:
     """Load the sound volume configuration."""
     volume_config = VolumeConfig()
 
+    if mw is None:
+        return volume_config
+
     config = mw.addonManager.getConfig(__name__)
     if config is None:
         return volume_config
