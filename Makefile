@@ -1,4 +1,4 @@
-inputs := __init__.py config.json manifest.json
+inputs := __init__.py config.py config.json manifest.json
 output := adjust-sound-volume.ankiaddon
 
 $(output): $(inputs)

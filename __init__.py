@@ -18,7 +18,6 @@ Adjust the sound volume in 2.1.x.
 """
 
 from dataclasses import asdict
-from dataclasses import dataclass
 from typing import Any
 from typing import Tuple
 
@@ -41,45 +40,16 @@ from aqt import gui_hooks
 from aqt import mw
 from anki.sound import AVTag
 
-
-@dataclass
-class LoudnormConfig:
-    """The loudnorm filter configuration"""
-    enabled: bool = False
-    i: int = -24
-
-
-@dataclass
-class VolumeConfig:
-    """The volume configuration"""
-    volume: int = 100
-    loudnorm: LoudnormConfig = LoudnormConfig()
+# false positive for 'import-self
+# https://github.com/PyCQA/pylint/issues/2617
+#
+# pylint: disable=W0406
+from . import config
 
 
-def load_config() -> VolumeConfig:
-    """Load the sound volume configuration."""
-    volume_config = VolumeConfig()
-
-    config = mw.addonManager.getConfig(__name__)
-    if config is None:
-        return volume_config
-
-    if 'volume' in config and isinstance(config['volume'], int):
-        volume_config.volume = config['volume']
-
-    if 'loudnorm' in config:
-        if 'enabled' in config['loudnorm'] and isinstance(config['loudnorm']['enabled'], bool):
-            volume_config.loudnorm.enabled = config['loudnorm']['enabled']
-
-        if 'i' in config['loudnorm'] and isinstance(config['loudnorm']['i'], int):
-            volume_config.loudnorm.i = config['loudnorm']['i']
-
-    return volume_config
-
-
-def save_config(config: VolumeConfig) -> None:
+def save_config(volume_config: config.VolumeConfig) -> None:
     """Save the sound volume configuration."""
-    mw.addonManager.writeConfig(__name__, asdict(config))
+    mw.addonManager.writeConfig(__name__, asdict(volume_config))
 
     gui_hooks.av_player_did_begin_playing.remove(did_begin_playing)
     gui_hooks.av_player_did_begin_playing.append(did_begin_playing)
@@ -87,16 +57,16 @@ def save_config(config: VolumeConfig) -> None:
 
 def did_begin_playing(player: Any, _: AVTag) -> None:
     """Set the sound volume."""
-    config = load_config()
+    volume_config = config.load_config()
     if isinstance(player, SimpleMplayerSlaveModePlayer):
-        player.command('volume', config.volume, '1')
+        player.command('volume', volume_config.volume, '1')
     elif isinstance(player, MpvManager):
-        player.set_property('volume', config.volume)
+        player.set_property('volume', volume_config.volume)
 
         # How can we retrieve the current value of the af property?
         # "player.get_property('af')" always returns "[]"
-        if config.loudnorm.enabled:
-            loudnorm_value = 'loudnorm=I=' + str(config.loudnorm.i)
+        if volume_config.loudnorm.enabled:
+            loudnorm_value = 'loudnorm=I=' + str(volume_config.loudnorm.i)
         else:
             loudnorm_value = ''
         player.set_property('af', loudnorm_value)
@@ -181,7 +151,7 @@ class VolumeDialog(QDialog):
 
     def show(self) -> None:
         """Show the dialog window and its widgets."""
-        volume_config = load_config()
+        volume_config = config.load_config()
 
         _set_value(volume_config.volume,
                    self.volume_slider, self.volume_spin_box)
@@ -199,7 +169,7 @@ class VolumeDialog(QDialog):
 
     def accept(self) -> None:
         """Save the sound volume and hide the dialog window."""
-        volume_config = VolumeConfig()
+        volume_config = config.VolumeConfig()
         volume_config.volume = self.volume_slider.value()
         volume_config.loudnorm.enabled = self.loudnorm_check_box.isChecked()
         volume_config.loudnorm.i = self.i_slider.value()
