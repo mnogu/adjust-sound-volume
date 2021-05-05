@@ -34,3 +34,6 @@ jobs:
     - name: Lint with pylint
       run: |
         pylint *.py
+    - name: Test
+      run: |
+        python test_config.py
