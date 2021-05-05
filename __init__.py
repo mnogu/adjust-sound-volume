@@ -26,8 +26,11 @@ from aqt.qt import QCheckBox
 from aqt.qt import QDialog
 from aqt.qt import QDialogButtonBox
 from aqt.qt import QGridLayout
+from aqt.qt import QGroupBox
+from aqt.qt import QHBoxLayout
 from aqt.qt import QLabel
 from aqt.qt import QMessageBox
+from aqt.qt import QSizePolicy
 from aqt.qt import QSlider
 from aqt.qt import QSpinBox
 from aqt.qt import QVBoxLayout
@@ -66,7 +69,10 @@ def did_begin_playing(player: Any, _: AVTag) -> None:
         # How can we retrieve the current value of the af property?
         # "player.get_property('af')" always returns "[]"
         if volume_config.loudnorm.enabled:
-            loudnorm_value = 'loudnorm=I=' + str(volume_config.loudnorm.i)
+            loudnorm_value = 'loudnorm=I={}:dual_mono={}'.format(
+                volume_config.loudnorm.i,
+                # True => true, False => false
+                str(volume_config.loudnorm.dual_mono).lower())
         else:
             loudnorm_value = ''
         player.set_property('af', loudnorm_value)
@@ -76,6 +82,7 @@ def _create_config_widgets(text: str, min_max: Tuple[int, int]) \
         -> Tuple[QLabel, QSlider, QSpinBox]:
     label = QLabel()
     label.setText(text)
+    label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
 
     slider = QSlider()
     slider.setOrientation(Qt.Horizontal)
@@ -106,23 +113,32 @@ class VolumeDialog(QDialog):
         volume_label, self.volume_slider, self.volume_spin_box = _create_config_widgets(
             'Volume', (0, 100))
 
-        self.loudnorm_check_box = QCheckBox(
-            'Enable loudness normalization (mpv only)')
+        volume_layout = QHBoxLayout()
+        volume_layout.addWidget(volume_label)
+        volume_layout.addWidget(self.volume_slider)
+        volume_layout.addWidget(self.volume_spin_box)
+
+        volume_group_box = QGroupBox()
+        volume_group_box.setLayout(volume_layout)
+        volume_group_box.setTitle('General')
 
         i_label, self.i_slider, self.i_spin_box = _create_config_widgets(
             'Integrated loudness', (-70, -5))
-        for widget in [i_label, self.i_slider, self.i_spin_box]:
-            self.loudnorm_check_box.toggled.connect(widget.setEnabled)
-        self.loudnorm_check_box.toggled.connect(self._show_warning_on_non_mpv)
+        self.dual_mono_check_box = QCheckBox(
+            'Treat mono input as dual-mono')
 
-        grid_layout = QGridLayout()
-        grid_layout.addWidget(volume_label, 0, 0)
-        grid_layout.addWidget(self.volume_slider, 0, 1)
-        grid_layout.addWidget(self.volume_spin_box, 0, 2)
-        grid_layout.addWidget(self.loudnorm_check_box, 1, 0, 1, 3)
-        grid_layout.addWidget(i_label, 2, 0)
-        grid_layout.addWidget(self.i_slider, 2, 1)
-        grid_layout.addWidget(self.i_spin_box, 2, 2)
+        loudnorm_layout = QGridLayout()
+        loudnorm_layout.addWidget(i_label, 0, 0)
+        loudnorm_layout.addWidget(self.i_slider, 0, 1)
+        loudnorm_layout.addWidget(self.i_spin_box, 0, 2)
+        loudnorm_layout.addWidget(self.dual_mono_check_box, 1, 0, 1, 3)
+
+        self.loudnorm_group_box = QGroupBox()
+        self.loudnorm_group_box.setLayout(loudnorm_layout)
+        self.loudnorm_group_box.setCheckable(True)
+        self.loudnorm_group_box.setTitle(
+            'Loudness Normalization (mpv only)')
+        self.loudnorm_group_box.toggled.connect(self._show_warning_on_non_mpv)
 
         button_box = QDialogButtonBox(
             QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
@@ -130,7 +146,8 @@ class VolumeDialog(QDialog):
         button_box.rejected.connect(self.reject)
 
         layout = QVBoxLayout()
-        layout.addLayout(grid_layout)
+        layout.addWidget(volume_group_box)
+        layout.addWidget(self.loudnorm_group_box)
         layout.addStretch()
         layout.addWidget(button_box)
 
@@ -158,12 +175,10 @@ class VolumeDialog(QDialog):
 
         loudnorm = volume_config.loudnorm
 
-        enabled = loudnorm.enabled
-        self.loudnorm_check_box.setChecked(enabled)
-        for widget in [self.i_slider, self.i_spin_box]:
-            widget.setEnabled(enabled)
+        self.loudnorm_group_box.setChecked(loudnorm.enabled)
 
         _set_value(loudnorm.i, self.i_slider, self.i_spin_box)
+        self.dual_mono_check_box.setChecked(loudnorm.dual_mono)
 
         super().show()
 
@@ -171,8 +186,9 @@ class VolumeDialog(QDialog):
         """Save the sound volume and hide the dialog window."""
         volume_config = config.VolumeConfig()
         volume_config.volume = self.volume_slider.value()
-        volume_config.loudnorm.enabled = self.loudnorm_check_box.isChecked()
+        volume_config.loudnorm.enabled = self.loudnorm_group_box.isChecked()
         volume_config.loudnorm.i = self.i_slider.value()
+        volume_config.loudnorm.dual_mono = self.dual_mono_check_box.isChecked()
 
         save_config(volume_config)
         super().accept()

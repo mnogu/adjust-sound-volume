@@ -49,7 +49,8 @@ class TestConfig(unittest.TestCase):
             volume=100,
             loudnorm=LoudnormConfig(
                 enabled=False,
-                i=-24
+                i=-24,
+                dual_mono=False
             )
         )
         self.assertEqual(actual, expected)
@@ -61,7 +62,8 @@ class TestConfig(unittest.TestCase):
             volume=100,
             loudnorm=LoudnormConfig(
                 enabled=False,
-                i=-24
+                i=-24,
+                dual_mono=False
             )
         )
         self.assertEqual(actual, expected)
@@ -73,7 +75,8 @@ class TestConfig(unittest.TestCase):
             volume=100,
             loudnorm=LoudnormConfig(
                 enabled=False,
-                i=-24
+                i=-24,
+                dual_mono=False
             )
         )
         self.assertEqual(actual, expected)
@@ -87,7 +90,8 @@ class TestConfig(unittest.TestCase):
             volume=70,
             loudnorm=LoudnormConfig(
                 enabled=False,
-                i=-24
+                i=-24,
+                dual_mono=False
             )
         )
         self.assertEqual(actual, expected)
@@ -101,7 +105,8 @@ class TestConfig(unittest.TestCase):
             volume=100,
             loudnorm=LoudnormConfig(
                 enabled=False,
-                i=-24
+                i=-24,
+                dual_mono=False
             )
         )
         self.assertEqual(actual, expected)
@@ -118,7 +123,8 @@ class TestConfig(unittest.TestCase):
             volume=100,
             loudnorm=LoudnormConfig(
                 enabled=True,
-                i=-24
+                i=-24,
+                dual_mono=False
             )
         )
         self.assertEqual(actual, expected)
@@ -135,7 +141,8 @@ class TestConfig(unittest.TestCase):
             volume=100,
             loudnorm=LoudnormConfig(
                 enabled=False,
-                i=-24
+                i=-24,
+                dual_mono=False
             )
         )
         self.assertEqual(actual, expected)
@@ -153,7 +160,8 @@ class TestConfig(unittest.TestCase):
             volume=100,
             loudnorm=LoudnormConfig(
                 enabled=True,
-                i=-12
+                i=-12,
+                dual_mono=False
             )
         )
         self.assertEqual(actual, expected)
@@ -171,7 +179,46 @@ class TestConfig(unittest.TestCase):
             volume=100,
             loudnorm=LoudnormConfig(
                 enabled=True,
-                i=-24
+                i=-24,
+                dual_mono=False
+            )
+        )
+        self.assertEqual(actual, expected)
+
+    def test_valid_loudnorm_dual_mono(self) -> None:
+        """Test with a valid dual-mono value."""
+        actual = self._get_config({
+            'volume': 100,
+            'loudnorm': {
+                'enabled': True,
+                'dual_mono': True
+            }
+        })
+        expected = VolumeConfig(
+            volume=100,
+            loudnorm=LoudnormConfig(
+                enabled=True,
+                i=-24,
+                dual_mono=True
+            )
+        )
+        self.assertEqual(actual, expected)
+
+    def test_invalid_loudnorm_dual_mono(self) -> None:
+        """Test with an invalid dual-mono value."""
+        actual = self._get_config({
+            'volume': 100,
+            'loudnorm': {
+                'enabled': True,
+                'dual_mono': 7
+            }
+        })
+        expected = VolumeConfig(
+            volume=100,
+            loudnorm=LoudnormConfig(
+                enabled=True,
+                i=-24,
+                dual_mono=False
             )
         )
         self.assertEqual(actual, expected)

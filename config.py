@@ -30,6 +30,7 @@ class LoudnormConfig:
     """The loudnorm filter configuration"""
     enabled: bool = False
     i: int = -24
+    dual_mono: bool = False
 
 
 @dataclass
@@ -61,15 +62,21 @@ def load_config() -> VolumeConfig:
     if value is not None:
         volume_config.volume = value
 
-    if 'loudnorm' in config:
-        loudnorm_config = config['loudnorm']
+    if 'loudnorm' not in config:
+        return volume_config
 
-        value = _load_value(loudnorm_config, 'enabled', bool)
-        if value is not None:
-            volume_config.loudnorm.enabled = value
+    loudnorm_config = config['loudnorm']
 
-        value = _load_value(loudnorm_config, 'i', int)
-        if value is not None:
-            volume_config.loudnorm.i = value
+    value = _load_value(loudnorm_config, 'enabled', bool)
+    if value is not None:
+        volume_config.loudnorm.enabled = value
+
+    value = _load_value(loudnorm_config, 'i', int)
+    if value is not None:
+        volume_config.loudnorm.i = value
+
+    value = _load_value(loudnorm_config, 'dual_mono', bool)
+    if value is not None:
+        volume_config.loudnorm.dual_mono = value
 
     return volume_config
