@@ -18,6 +18,9 @@ Handle the volume configurations
 """
 from dataclasses import dataclass
 from dataclasses import field
+from typing import Any
+from typing import Dict
+from typing import Type
 
 from aqt import mw
 
@@ -36,6 +39,13 @@ class VolumeConfig:
     loudnorm: LoudnormConfig = field(default_factory=LoudnormConfig)
 
 
+def _load_value(config: Dict[str, Any], key: str, type_: Type) -> Any:
+    if key in config and isinstance(config[key], type_):
+        return config[key]
+
+    return None
+
+
 def load_config() -> VolumeConfig:
     """Load the sound volume configuration."""
     volume_config = VolumeConfig()
@@ -44,14 +54,19 @@ def load_config() -> VolumeConfig:
     if config is None:
         return volume_config
 
-    if 'volume' in config and isinstance(config['volume'], int):
-        volume_config.volume = config['volume']
+    value = _load_value(config, 'volume', int)
+    if value is not None:
+        volume_config.volume = value
 
     if 'loudnorm' in config:
-        if 'enabled' in config['loudnorm'] and isinstance(config['loudnorm']['enabled'], bool):
-            volume_config.loudnorm.enabled = config['loudnorm']['enabled']
+        loudnorm_config = config['loudnorm']
 
-        if 'i' in config['loudnorm'] and isinstance(config['loudnorm']['i'], int):
-            volume_config.loudnorm.i = config['loudnorm']['i']
+        value = _load_value(loudnorm_config, 'enabled', bool)
+        if value is not None:
+            volume_config.loudnorm.enabled = value
+
+        value = _load_value(loudnorm_config, 'i', int)
+        if value is not None:
+            volume_config.loudnorm.i = value
 
     return volume_config
