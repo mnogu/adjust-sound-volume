@@ -18,6 +18,7 @@ Test the behavior in loading configurations
 """
 import unittest
 from typing import Dict
+from typing import Union
 from unittest.mock import patch
 
 from config import load_config
@@ -35,7 +36,7 @@ class TestConfig(unittest.TestCase):
     def tearDown(self) -> None:
         self.patcher.stop()
 
-    def _get_config(self, config: Dict) -> VolumeConfig:
+    def _get_config(self, config: Union[Dict, None]) -> VolumeConfig:
         self.mock.addonManager.getConfig.return_value = config
         return load_config()
 
