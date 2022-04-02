@@ -38,10 +38,10 @@ def did_begin_playing(player: Any, _: AVTag) -> None:
         # How can we retrieve the current value of the af property?
         # "player.get_property('af')" always returns "[]"
         if volume_config.loudnorm.enabled:
-            loudnorm_value = 'loudnorm=I={}:dual_mono={}'.format(
-                volume_config.loudnorm.i,
-                # True => true, False => false
-                str(volume_config.loudnorm.dual_mono).lower())
+            i = volume_config.loudnorm.i
+            # True => true, False => false
+            dual_mono = str(volume_config.loudnorm.dual_mono).lower()
+            loudnorm_value = f'loudnorm=I={i}:dual_mono={dual_mono}'
         else:
             loudnorm_value = ''
         player.set_property('af', loudnorm_value)
