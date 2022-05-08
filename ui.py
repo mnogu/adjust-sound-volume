@@ -28,10 +28,14 @@ from aqt.qt import QGridLayout
 from aqt.qt import QGroupBox
 from aqt.qt import QHBoxLayout
 from aqt.qt import QLabel
+from aqt.qt import QListView
 from aqt.qt import QMessageBox
+from aqt.qt import QPushButton
+from aqt.qt import QSize
 from aqt.qt import QSizePolicy
 from aqt.qt import QSlider
 from aqt.qt import QSpinBox
+from aqt.qt import QStringListModel
 from aqt.qt import QVBoxLayout
 from aqt.qt import QWidget
 from aqt.qt import Qt
@@ -76,6 +80,42 @@ def _set_value(value: int, slider: QSlider, spin_box: QSpinBox) -> None:
         widget.setValue(value)
 
 
+class FileListView(QListView):
+    """A file name list view with the size hint"""
+
+    # pylint: disable=C0103
+    def sizeHint(self) -> QSize:
+        """Return the size hint."""
+        # make the height smaller
+        return QSize(self.sizeHintForColumn(0), self.sizeHintForRow(0) * 3)
+
+
+class FileListLayout(QHBoxLayout):
+    """A file name list layout"""
+
+    def __init__(self) -> None:
+        super().__init__()
+
+        model = QStringListModel()
+
+        view = FileListView()
+        view.setModel(model)
+
+        button_to_add = QPushButton()
+        button_to_add.setText('Add')
+
+        button_to_remove = QPushButton()
+        button_to_remove.setText('Remove')
+
+        layout = QVBoxLayout()
+        layout.addWidget(button_to_add)
+        layout.addWidget(button_to_remove)
+        layout.addStretch()
+
+        self.addWidget(view)
+        self.addLayout(layout)
+
+
 class VolumeDialog(QDialog):
     """A dialog window to set the sound volume"""
 
@@ -112,6 +152,10 @@ class VolumeDialog(QDialog):
             'Loudness Normalization (mpv only)')
         self.loudnorm_group_box.toggled.connect(self._show_warning_on_non_mpv)
 
+        file_group_box = QGroupBox()
+        file_group_box.setLayout(FileListLayout())
+        file_group_box.setTitle('Files not to adjust')
+
         button_box = QDialogButtonBox(
             QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         button_box.accepted.connect(self.accept)
@@ -120,6 +164,7 @@ class VolumeDialog(QDialog):
         layout = QVBoxLayout()
         layout.addWidget(volume_group_box)
         layout.addWidget(self.loudnorm_group_box)
+        layout.addWidget(file_group_box)
         layout.addStretch()
         layout.addWidget(button_box)
 
