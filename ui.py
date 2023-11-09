@@ -54,10 +54,10 @@ def _create_config_widgets(text: str, min_max: Tuple[int, int]) \
         -> Tuple[QLabel, QSlider, QSpinBox]:
     label = QLabel()
     label.setText(text)
-    label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
+    label.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
 
     slider = QSlider()
-    slider.setOrientation(Qt.Horizontal)
+    slider.setOrientation(Qt.Orientation.Horizontal)
     slider.setMinimum(min_max[0])
     slider.setMaximum(min_max[1])
 
@@ -113,7 +113,7 @@ class VolumeDialog(QDialog):
         self.loudnorm_group_box.toggled.connect(self._show_warning_on_non_mpv)
 
         button_box = QDialogButtonBox(
-            QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+            QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
         button_box.accepted.connect(self.accept)
         button_box.rejected.connect(self.reject)
 
