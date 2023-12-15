@@ -1,1 +1,1 @@
-aqt
+aqt[qt6]
